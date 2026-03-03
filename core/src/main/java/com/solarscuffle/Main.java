@@ -9,17 +9,20 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
+import com.solarscuffle.planets.Planet;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends ApplicationAdapter implements InputProcessor {
     public Environment environment;
     public ModelBatch modelBatch;
     public PerspectiveCamera camera;
-    public Model model;
+    public static Model sphere;
     public ModelInstance instance;
 
+    public float zoom = 1.0f;
     public Vector3 cameraPosition = new Vector3();
 
+    public Planet planet;
 
     @Override
     public void create() {
@@ -27,6 +30,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         environment = new Environment();
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight,0.2f,0.2f,0.2f,1f));
         environment.add(new DirectionalLight().set(0.6f,0.6f,0.6f,0f,0f,-1f));
+
 
         camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.position.set(0f, 0f, 45f);
@@ -36,9 +40,12 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         camera.update();
 
         ModelBuilder builder = new ModelBuilder();
-        model = builder.createSphere(5f,5f,5f,32,32, new Material(ColorAttribute.createDiffuse(Color.CYAN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        instance = new ModelInstance(model);
+        sphere = builder.createSphere(1f,1f,1f,32,32, new Material(ColorAttribute.createDiffuse(Color.CYAN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        instance = new ModelInstance(sphere);
         Gdx.input.setInputProcessor(this);
+
+
+        planet = new Planet(Vector3.Zero);
     }
 
     @Override
@@ -69,14 +76,14 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         modelBatch.begin(camera);
-        modelBatch.render(instance, environment);
+        modelBatch.render(planet.model, environment);
         modelBatch.end();
     }
 
     @Override
     public void dispose() {
         modelBatch.dispose();
-        model.dispose();
+        sphere.dispose();
     }
 
     @Override
@@ -134,7 +141,13 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
-        //camera.position.add(0,0,amountY * 2f);
+        float fallOff = 20;
+        float scale = 200;
+        zoom = Math.max(0.0f,zoom + amountY);
+        zoom = Math.min(zoom,fallOff * 2);
+        System.out.println(zoom);
+        float a = zoom / (zoom + fallOff);
+        camera.position.z = (20) + scale * a * a * a;
         return true;
     }
 }
