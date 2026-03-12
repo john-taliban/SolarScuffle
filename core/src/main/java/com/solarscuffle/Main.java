@@ -3,6 +3,7 @@ package com.solarscuffle;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -16,13 +17,15 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     public Environment environment;
     public ModelBatch modelBatch;
     public PerspectiveCamera camera;
-    public static Model sphere;
     public ModelInstance instance;
+
+    public static Model sphere;
+    public static Texture square;
 
     public float zoom = 1.0f;
     public Vector3 cameraPosition = new Vector3();
 
-    public Planet planet;
+    public Planet[] planets = new Planet[1];
 
     @Override
     public void create() {
@@ -42,10 +45,11 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         ModelBuilder builder = new ModelBuilder();
         sphere = builder.createSphere(1f,1f,1f,32,32, new Material(ColorAttribute.createDiffuse(Color.CYAN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         instance = new ModelInstance(sphere);
+
+        square = new Texture("libgdx.png");
+
+        planets[0] = new Planet(Vector3.Zero);
         Gdx.input.setInputProcessor(this);
-
-
-        planet = new Planet(Vector3.Zero);
     }
 
     @Override
@@ -56,27 +60,32 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public void render() {
-        input();
-        logic();
-        draw();
+        double deltaTime = Gdx.graphics.getDeltaTime();
+        input(deltaTime);
+        logic(deltaTime);
+        draw(deltaTime);
     }
 
 
-    private void input() {
+    private void input(double deltaTime) {
 
     }
 
-    private void logic() {
-
+    private void logic(double deltaTime) {
+        for (Planet planet : planets) {
+            planet.tick(deltaTime);
+        }
     }
 
-    private void draw() {
+    private void draw(double deltaTime) {
         camera.update();
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         modelBatch.begin(camera);
-        modelBatch.render(planet.model, environment);
+        for (Planet planet : planets) {
+            planet.draw(modelBatch,environment);
+        }
         modelBatch.end();
     }
 
@@ -84,6 +93,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     public void dispose() {
         modelBatch.dispose();
         sphere.dispose();
+        square.dispose();
     }
 
     @Override
