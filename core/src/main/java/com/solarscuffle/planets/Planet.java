@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.solarscuffle.Main;
 
@@ -19,20 +20,26 @@ public class Planet {
     public int units;
     public double progress;
     public Decal progessBar;
+    private Vector3 barPos;
 
     public Planet(Vector3 pos) {
         this.position = pos;
 
         model = new ModelInstance(Main.sphere);
-        model.transform.setToScaling(type.size,type.size,type.size);
+        model.transform.set(position, new Quaternion(), new Vector3(type.size,type.size,type.size));
         model.calculateTransforms();
 
-        progessBar = Decal.newDecal(new TextureRegion(Main.square));
+        progessBar = Decal.newDecal(8f,1.5f,new TextureRegion(Main.square));
         progessBar.lookAt(Vector3.Z, Vector3.Y);
+        barPos = pos.add(0,type.size/2 + 4,0);
+        progessBar.setPosition(barPos);
     }
 
     public void draw(ModelBatch modelBatch, DecalBatch decalBatch, Environment environment) {
         modelBatch.render(model, environment);
+        progessBar.setWidth(4 * (float)progress);
+        progessBar.setX(barPos.x + (2 * (float)progress) - 4);
+        decalBatch.add(progessBar);
 
     }
 

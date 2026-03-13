@@ -7,6 +7,9 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.decals.CameraGroupStrategy;
+import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
+import com.badlogic.gdx.graphics.g3d.decals.GroupStrategy;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
@@ -16,16 +19,18 @@ import com.solarscuffle.planets.Planet;
 public class Main extends ApplicationAdapter implements InputProcessor {
     public Environment environment;
     public ModelBatch modelBatch;
+    public DecalBatch decalBatch;
+
     public PerspectiveCamera camera;
     public ModelInstance instance;
 
     public static Model sphere;
     public static Texture square;
 
-    public float zoom = 1.0f;
+    public float zoom = 10.0f;
     public Vector3 cameraPosition = new Vector3();
 
-    public Planet[] planets = new Planet[1];
+    public Planet[] planets = new Planet[5];
 
     @Override
     public void create() {
@@ -42,13 +47,19 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         camera.far = 300f;
         camera.update();
 
+        decalBatch = new DecalBatch(new CameraGroupStrategy(camera));
+
         ModelBuilder builder = new ModelBuilder();
         sphere = builder.createSphere(1f,1f,1f,32,32, new Material(ColorAttribute.createDiffuse(Color.CYAN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         instance = new ModelInstance(sphere);
 
-        square = new Texture("libgdx.png");
+        square = new Texture("red.png");
 
         planets[0] = new Planet(Vector3.Zero);
+        planets[1] = new Planet(new Vector3(50,50,0));
+        planets[2] = new Planet(new Vector3(50,-50,0));
+        planets[3] = new Planet(new Vector3(-50,50,0));
+        planets[4] = new Planet(new Vector3(-50,-50,0));
         Gdx.input.setInputProcessor(this);
     }
 
@@ -84,14 +95,16 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
         modelBatch.begin(camera);
         for (Planet planet : planets) {
-            planet.draw(modelBatch,environment);
+            planet.draw(modelBatch,decalBatch,environment);
         }
+        decalBatch.flush();
         modelBatch.end();
     }
 
     @Override
     public void dispose() {
         modelBatch.dispose();
+        decalBatch.dispose();
         sphere.dispose();
         square.dispose();
     }
@@ -139,7 +152,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        camera.position.add((screenX - cameraPosition.x) * -0.05f,(screenY - cameraPosition.y) * 0.05f,0);
+        camera.position.add((screenX - cameraPosition.x) * -0.05f * (zoom/20 + 0.01f),(screenY - cameraPosition.y) * 0.05f * (zoom/20 + 0.01f),0);
         cameraPosition.set(screenX,screenY,0);
         return true;
     }
@@ -153,8 +166,8 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     public boolean scrolled(float amountX, float amountY) {
         float fallOff = 20;
         float scale = 200;
-        zoom = Math.max(0.0f,zoom + amountY);
-        zoom = Math.min(zoom,fallOff * 2);
+        zoom = Math.max(10.0f,zoom + amountY*2);
+        zoom = Math.min(zoom,fallOff * 4);
         System.out.println(zoom);
         float a = zoom / (zoom + fallOff);
         camera.position.z = (20) + scale * a * a * a;
