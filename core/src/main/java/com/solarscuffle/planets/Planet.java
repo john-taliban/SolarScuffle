@@ -1,13 +1,11 @@
 package com.solarscuffle.planets;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.solarscuffle.Main;
@@ -15,31 +13,33 @@ import com.solarscuffle.Main;
 public class Planet {
 
     public Vector3 position;
-    public ModelInstance model;
     public PlanetType type = PlanetType.BASIC;
     public int units;
-    public double progress;
-    public Decal progessBar;
+    public Team team;
+    private ModelInstance model;
+    private double progress;
+    private Decal progressBar;
     private Vector3 barPos;
 
-    public Planet(Vector3 pos) {
+    public Planet(Vector3 pos, Team team) {
         this.position = pos;
+        this.team = team;
 
         model = new ModelInstance(Main.sphere);
         model.transform.set(position, new Quaternion(), new Vector3(type.size,type.size,type.size));
+        model.getMaterial("main").set(ColorAttribute.createDiffuse(team.colour));
         model.calculateTransforms();
-
-        progessBar = Decal.newDecal(8f,1.5f,new TextureRegion(Main.square));
-        progessBar.lookAt(Vector3.Z, Vector3.Y);
+        progressBar = Decal.newDecal(8f,1.5f,new TextureRegion(Main.square));
+        progressBar.lookAt(Vector3.Z, Vector3.Y);
         barPos = pos.add(0,type.size/2 + 4,0);
-        progessBar.setPosition(barPos);
+        progressBar.setPosition(barPos);
     }
 
     public void draw(ModelBatch modelBatch, DecalBatch decalBatch, Environment environment) {
         modelBatch.render(model, environment);
-        progessBar.setWidth(4 * (float)progress);
-        progessBar.setX(barPos.x + (2 * (float)progress) - 4);
-        decalBatch.add(progessBar);
+        progressBar.setWidth(4 * (float)progress);
+        progressBar.setX(barPos.x + (2 * (float)progress) - 4);
+        decalBatch.add(progressBar);
 
     }
 

@@ -4,7 +4,8 @@ import java.awt.Color;
 
 public enum PlanetType {
 
-    BASIC(10,1);
+    BASIC(10,1),
+    LARGE(10,1);
 
     public float size;
     public float rate;

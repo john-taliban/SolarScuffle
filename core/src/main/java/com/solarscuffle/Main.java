@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.solarscuffle.planets.Planet;
+import com.solarscuffle.planets.Team;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends ApplicationAdapter implements InputProcessor {
@@ -34,11 +35,11 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public void create() {
+
         modelBatch = new ModelBatch();
         environment = new Environment();
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight,0.2f,0.2f,0.2f,1f));
         environment.add(new DirectionalLight().set(0.6f,0.6f,0.6f,0f,0f,-1f));
-
 
         camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.position.set(0f, 0f, 45f);
@@ -50,16 +51,16 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         decalBatch = new DecalBatch(new CameraGroupStrategy(camera));
 
         ModelBuilder builder = new ModelBuilder();
-        sphere = builder.createSphere(1f,1f,1f,32,32, new Material(ColorAttribute.createDiffuse(Color.CYAN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        sphere = builder.createSphere(1f,1f,1f,32,32, new Material("main",ColorAttribute.createDiffuse(Color.CYAN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
         instance = new ModelInstance(sphere);
 
         square = new Texture("red.png");
 
-        planets[0] = new Planet(Vector3.Zero);
-        planets[1] = new Planet(new Vector3(50,50,0));
-        planets[2] = new Planet(new Vector3(50,-50,0));
-        planets[3] = new Planet(new Vector3(-50,50,0));
-        planets[4] = new Planet(new Vector3(-50,-50,0));
+        planets[0] = new Planet(Vector3.Zero, Team.NEUTRAL);
+        planets[1] = new Planet(new Vector3(50,50,0),Team.RED);
+        planets[2] = new Planet(new Vector3(50,-50,0),Team.BLUE);
+        planets[3] = new Planet(new Vector3(-50,50,0),Team.GREEN);
+        planets[4] = new Planet(new Vector3(-50,-50,0),Team.YELLOW);
         Gdx.input.setInputProcessor(this);
     }
 
