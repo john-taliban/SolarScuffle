@@ -25,6 +25,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     public PerspectiveCamera camera;
     public ModelInstance instance;
 
+    public static float gameTime;
     public static Model sphere;
     public static Texture square;
 
@@ -73,6 +74,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     @Override
     public void render() {
         double deltaTime = Gdx.graphics.getDeltaTime();
+        gameTime += (float) deltaTime;
         input(deltaTime);
         logic(deltaTime);
         draw(deltaTime);
@@ -137,7 +139,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        cameraPosition.set(screenX,screenY,0);
+        cameraPosition.set(camera.unproject(new Vector3(screenX, screenY,0)));
         return true;
     }
 
@@ -153,8 +155,10 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        camera.position.add((screenX - cameraPosition.x) * -0.05f * (zoom/20 + 0.01f),(screenY - cameraPosition.y) * 0.05f * (zoom/20 + 0.01f),0);
-        cameraPosition.set(screenX,screenY,0);
+        Vector3 unproject = camera.unproject(new Vector3(screenX,screenY,0));
+        Vector3 delta = unproject.sub(cameraPosition);
+        camera.position.add(delta);
+        cameraPosition.set(unproject);
         return true;
     }
 
