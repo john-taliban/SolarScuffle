@@ -30,6 +30,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     public static Texture square;
 
     public float zoom = 10.0f;
+    public Vector3 dragStartPos = new Vector3();
     public Vector3 cameraPosition = new Vector3();
 
     public Planet[] planets = new Planet[5];
@@ -139,7 +140,8 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        cameraPosition.set(camera.unproject(new Vector3(screenX, screenY,0)));
+        dragStartPos.set(screenX,screenY,0);
+        cameraPosition = new Vector3(camera.position);
         return true;
     }
 
@@ -155,10 +157,10 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        Vector3 unproject = camera.unproject(new Vector3(screenX,screenY,0));
-        Vector3 delta = unproject.sub(cameraPosition);
-        camera.position.add(delta);
-        cameraPosition.set(unproject);
+        Vector3 delta = new Vector3(screenX,screenY,0).sub(dragStartPos);
+        delta.x *= -0.01f * zoom;
+        delta.y *= 0.01f * zoom;
+        camera.position.set(delta.add(cameraPosition));
         return true;
     }
 
