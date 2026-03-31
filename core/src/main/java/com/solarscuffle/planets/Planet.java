@@ -8,8 +8,10 @@ import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.math.collision.Sphere;
 import com.solarscuffle.Main;
 
@@ -48,7 +50,6 @@ public class Planet {
         unit.setColor(team.colour);
         id = tally++;
         hitbox = new Sphere(position, type.size);
-        System.out.println(id);
     }
 
     public void draw(ModelBatch modelBatch, DecalBatch decalBatch, Environment environment) {
@@ -77,6 +78,14 @@ public class Planet {
             units += (int) Math.floor(progress);
             progress -= 2d;
         }
+    }
+
+    public boolean getCollision(Ray ray) {
+        return Intersector.intersectRaySphere(ray,position,type.size,null);
+    }
+
+    public void toggleSelected() {
+
     }
 
 }

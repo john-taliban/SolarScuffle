@@ -3,16 +3,17 @@ package com.solarscuffle;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.decals.CameraGroupStrategy;
 import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
-import com.badlogic.gdx.graphics.g3d.decals.GroupStrategy;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.solarscuffle.planets.Planet;
 import com.solarscuffle.planets.Team;
 
@@ -29,11 +30,13 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     public static Model sphere;
     public static Texture square;
 
-    public float zoom = 10.0f;
-    public Vector3 dragStartPos = new Vector3();
-    public Vector3 cameraPosition = new Vector3();
+    public float zoom = 0.0f;
 
     public Planet[] planets = new Planet[5];
+    private final Plane backPlane = new Plane(new Vector3(0, 0, 1), 0);
+    private final Vector3 intersection = new Vector3();
+    private final Vector3 lastDragPos = new Vector3();
+
 
     @Override
     public void create() {
@@ -44,7 +47,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         environment.add(new DirectionalLight().set(0.6f,0.6f,0.6f,0f,0f,-1f));
 
         camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.position.set(0f, 0f, 45f);
+        camera.position.set(0f, 0f, 10f);
         camera.lookAt(0,0,0);
         camera.near = 1f;
         camera.far = 300f;
@@ -139,13 +142,6 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        dragStartPos.set(screenX,screenY,0);
-        cameraPosition = new Vector3(camera.position);
-        return true;
-    }
-
-    @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         return false;
     }
@@ -156,12 +152,39 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     }
 
     @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        Vector3 delta = new Vector3(screenX,screenY,0).sub(dragStartPos);
-        delta.x *= -0.01f * zoom;
-        delta.y *= 0.01f * zoom;
-        camera.position.set(delta.add(cameraPosition));
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        // Just find where we clicked initially
+        Ray cameraRay = camera.getPickRay(screenX, screenY);
+        for ( Planet planet : planets) {
+            if (planet.getCollision(cameraRay)) {
+
+            }
+        }
+        Intersector.intersectRayPlane(cameraRay, backPlane, lastDragPos);
         return true;
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        // 1. Find where the finger is in the world RIGHT NOW (relative to current camera)
+        if (Intersector.intersectRayPlane(camera.getPickRay(screenX, screenY), backPlane, intersection)) {
+
+            // 2. Calculate the delta (Current - Last)
+            // We use .tmp for the calculation to avoid creating new Vector3 objects
+            float deltaX = intersection.x - lastDragPos.x;
+            float deltaY = intersection.y - lastDragPos.y;
+
+            // 3. Move the camera in the OPPOSITE direction of the drag
+            camera.position.sub(deltaX, deltaY, 0);
+            camera.update(); // Update immediately so the next intersection calculation is accurate
+
+            // 4. Re-calculate the world position AFTER the camera moved
+            // to keep the anchor point under the finger
+            Intersector.intersectRayPlane(camera.getPickRay(screenX, screenY), backPlane, lastDragPos);
+
+            return true;
+        }
+        return false;
     }
 
     @Override
