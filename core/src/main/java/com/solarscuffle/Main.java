@@ -4,9 +4,11 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.decals.CameraGroupStrategy;
+import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
@@ -29,6 +31,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     public static float gameTime;
     public static Model sphere;
     public static Texture square;
+    public static Decal[] numbers = new Decal[10];
 
     public float zoom = 0.0f;
 
@@ -36,6 +39,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     private final Plane backPlane = new Plane(new Vector3(0, 0, 1), 0);
     private final Vector3 intersection = new Vector3();
     private final Vector3 lastDragPos = new Vector3();
+
 
 
     @Override
@@ -60,6 +64,9 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         instance = new ModelInstance(sphere);
 
         square = new Texture("red.png");
+        for (int i = 0; i < 10; i++) {
+            numbers[i] = Decal.newDecal(3f,4f,new TextureRegion(new Texture(i+".png")));
+        }
 
         planets[0] = new Planet(Vector3.Zero, Team.NEUTRAL);
         planets[1] = new Planet(new Vector3(50,50,0),Team.RED);
@@ -157,7 +164,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         Ray cameraRay = camera.getPickRay(screenX, screenY);
         for ( Planet planet : planets) {
             if (planet.getCollision(cameraRay)) {
-
+                planet.toggleSelected();
             }
         }
         Intersector.intersectRayPlane(cameraRay, backPlane, lastDragPos);

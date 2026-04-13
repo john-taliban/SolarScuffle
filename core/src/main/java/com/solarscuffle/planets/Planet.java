@@ -20,16 +20,17 @@ import java.util.Random;
 public class Planet {
 
     public Vector3 position;
-    public PlanetType type = PlanetType.BASIC;
+    public PlanetType type = PlanetType.LARGE;
     public int units;
     public Team team;
-    private Sphere hitbox;
+    private Vector3 hitbox;
     private ModelInstance model;
     private double progress;
     private Decal progressBar;
     private Decal unit;
     private Vector3 barPos;
     private int id;
+    private boolean selected = false;
 
     private static int tally;
 
@@ -47,9 +48,9 @@ public class Planet {
         progressBar.setPosition(barPos);
         progressBar.setColor(team.colour);
         unit = Decal.newDecal(2f,2f,new TextureRegion(Main.square));
-        unit.setColor(team.colour);
+        unit.setColor(team.unit);
         id = tally++;
-        hitbox = new Sphere(position, type.size);
+        hitbox = new Vector3(-type.size/2,-type.size/2,0).add(position);
     }
 
     public void draw(ModelBatch modelBatch, DecalBatch decalBatch, Environment environment) {
@@ -70,22 +71,28 @@ public class Planet {
             decalBatch.add(unit);
             decalBatch.flush();
         }
+        String numbers = Integer.toString(units);
+        for (int i = 0; i < numbers.length(); i++) {
+            decalBatch.add(Main.numbers[Integer.parseInt(numbers.)]);
+        }
     }
 
     public void tick(double deltaTime) {
-        progress += deltaTime * 5;
+        progress += deltaTime * 2 / type.rate;
         if (progress > 2d) {
-            units += (int) Math.floor(progress);
+            units += (int) Math.floor(progress) * type.rate * type.rate;
             progress -= 2d;
         }
     }
 
     public boolean getCollision(Ray ray) {
-        return Intersector.intersectRaySphere(ray,position,type.size,null);
+        return Intersector.intersectRaySphere(ray,hitbox,type.size,null);
     }
 
     public void toggleSelected() {
-
+        selected = !selected;
+        System.out.println(selected);
+        model.getMaterial("main").set(selected ? ColorAttribute.createDiffuse(team.highlight) : ColorAttribute.createDiffuse(team.colour));
     }
 
 }
