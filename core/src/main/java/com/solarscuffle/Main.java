@@ -17,6 +17,7 @@ import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.solarscuffle.planets.Planet;
+import com.solarscuffle.planets.PlanetType;
 import com.solarscuffle.planets.Team;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
@@ -68,7 +69,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
             numbers[i] = Decal.newDecal(3f,4f,new TextureRegion(new Texture(i+".png")));
         }
 
-        planets[0] = new Planet(Vector3.Zero, Team.NEUTRAL);
+        planets[0] = new Planet(Vector3.Zero, Team.NEUTRAL, PlanetType.LARGE);
         planets[1] = new Planet(new Vector3(50,50,0),Team.RED);
         planets[2] = new Planet(new Vector3(50,-50,0),Team.BLUE);
         planets[3] = new Planet(new Vector3(-50,50,0),Team.GREEN);

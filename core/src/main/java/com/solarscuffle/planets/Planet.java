@@ -20,7 +20,7 @@ import java.util.Random;
 public class Planet {
 
     public Vector3 position;
-    public PlanetType type = PlanetType.LARGE;
+    public PlanetType type = PlanetType.BASIC;
     public int units;
     public Team team;
     private Vector3 hitbox;
@@ -34,9 +34,10 @@ public class Planet {
 
     private static int tally;
 
-    public Planet(Vector3 pos, Team team) {
+    public Planet(Vector3 pos, Team team, PlanetType type) {
         this.position = pos;
         this.team = team;
+        this.type = type;
 
         model = new ModelInstance(Main.sphere);
         model.transform.set(position, new Quaternion(), new Vector3(type.size,type.size,type.size));
@@ -51,6 +52,10 @@ public class Planet {
         unit.setColor(team.unit);
         id = tally++;
         hitbox = new Vector3(-type.size/2,-type.size/2,0).add(position);
+    }
+
+    public Planet(Vector3 pos, Team team) {
+        this(pos,team,PlanetType.BASIC);
     }
 
     public void draw(ModelBatch modelBatch, DecalBatch decalBatch, Environment environment) {
@@ -71,16 +76,23 @@ public class Planet {
             decalBatch.add(unit);
             decalBatch.flush();
         }
-        String numbers = Integer.toString(units);
-        for (int i = 0; i < numbers.length(); i++) {
-            decalBatch.add(Main.numbers[Integer.parseInt(numbers.)]);
+        int length = (int) Math.floor(Math.log10(units));
+        int j = units;
+        Vector3 p = new Vector3(position).add(-j,type.size / 2 + 8,0);
+        for (int i = 0; i < length; i++) {
+            Decal num = Main.numbers[j % 10];
+            j/=10;
+            num.setColor(team.colour);
+            num.setPosition(p);
+            p.add(2,0,0);
+            decalBatch.add(num);
         }
     }
 
     public void tick(double deltaTime) {
         progress += deltaTime * 2 / type.rate;
         if (progress > 2d) {
-            units += (int) Math.floor(progress) * type.rate * type.rate;
+            units += (int) Math.floor(progress) * type.rate * type.rate * 100;
             progress -= 2d;
         }
     }
