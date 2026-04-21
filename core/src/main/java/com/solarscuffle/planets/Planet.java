@@ -45,13 +45,13 @@ public class Planet {
         model.calculateTransforms();
         progressBar = Decal.newDecal(8f,1.5f,new TextureRegion(Main.square));
         progressBar.lookAt(Vector3.Z, Vector3.Y);
-        barPos = pos.add(0,type.size/2 + 4,0);
+        barPos = pos.add(0,type.radius + 4f,0);
         progressBar.setPosition(barPos);
         progressBar.setColor(team.colour);
         unit = Decal.newDecal(2f,2f,new TextureRegion(Main.square));
         unit.setColor(team.unit);
         id = tally++;
-        hitbox = new Vector3(-type.size/2,-type.size/2,0).add(position);
+        hitbox = new Vector3(0,-type.radius,0).add(position);
     }
 
     public Planet(Vector3 pos, Team team) {
@@ -78,7 +78,7 @@ public class Planet {
         }
         int length = (int) Math.floor(Math.log10(units));
         int j = units;
-        Vector3 p = new Vector3(position).add(-j,type.size / 2 + 8,0);
+        Vector3 p = new Vector3(position).add(-j,type.radius + 8,0);
         for (int i = 0; i < length; i++) {
             Decal num = Main.numbers[j % 10];
             j/=10;
@@ -98,7 +98,7 @@ public class Planet {
     }
 
     public boolean getCollision(Ray ray) {
-        return Intersector.intersectRaySphere(ray,hitbox,type.size,null);
+        return Intersector.intersectRaySphere(ray,hitbox,type.radius,null);
     }
 
     public void toggleSelected() {
