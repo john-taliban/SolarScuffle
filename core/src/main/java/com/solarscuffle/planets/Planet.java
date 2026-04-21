@@ -35,7 +35,7 @@ public class Planet {
     private static int tally;
 
     public Planet(Vector3 pos, Team team, PlanetType type) {
-        this.position = pos;
+        this.position = new Vector3(pos);
         this.team = team;
         this.type = type;
 
@@ -45,7 +45,7 @@ public class Planet {
         model.calculateTransforms();
         progressBar = Decal.newDecal(8f,1.5f,new TextureRegion(Main.square));
         progressBar.lookAt(Vector3.Z, Vector3.Y);
-        barPos = pos.add(0,type.radius + 4f,0);
+        barPos = pos.add(0,type.radius * 1.2f + 2f,0);
         progressBar.setPosition(barPos);
         progressBar.setColor(team.colour);
         unit = Decal.newDecal(2f,2f,new TextureRegion(Main.square));
@@ -66,33 +66,35 @@ public class Planet {
         Vector3 unitPos = new Vector3(position);
         Vector3 unitOffset = new Vector3(Vector3.X);
         Vector3 unitId = new Vector3();
-        unitPos.mulAdd(Vector3.Y,-type.size);
-        unitOffset.scl(type.size);
+        unitOffset.scl(type.radius + 4f);
         Random random = new Random(id);
-        for (int i = 0; i < Math.pow(units,0.5) ; i++) {
-            unitId.y = random.nextFloat(-1,1) * type.size/2;
+        for (int i = 0; i < Math.pow(units,0.3 + 0.014 * type.size) ; i++) {
+            unitId.y = random.nextFloat(-0.5f,0.5f) * type.radius;
             unitOffset.rotate(Vector3.Y,37 + random.nextFloat(-4,4));
             unit.setPosition(new Vector3(unitOffset).rotate(Vector3.Y,Main.gameTime * 40).add(unitPos).add(unitId));
             decalBatch.add(unit);
             decalBatch.flush();
         }
-        int length = (int) Math.floor(Math.log10(units));
+        int length = 1 + (units < 10 ? 0 : (int) Math.log10(units));
         int j = units;
-        Vector3 p = new Vector3(position).add(-j,type.radius + 8,0);
+        float letterWidth = 3f;
+        Vector3 p = new Vector3(position).add((length-1) * letterWidth / 2,type.radius * 1.3f + 6,0);
+        System.out.println(length);
         for (int i = 0; i < length; i++) {
             Decal num = Main.numbers[j % 10];
             j/=10;
             num.setColor(team.colour);
             num.setPosition(p);
-            p.add(2,0,0);
+            p.add(-letterWidth,0,0);
             decalBatch.add(num);
+            decalBatch.flush();
         }
     }
 
     public void tick(double deltaTime) {
         progress += deltaTime * 2 / type.rate;
         if (progress > 2d) {
-            units += (int) Math.floor(progress) * type.rate * type.rate * 100;
+            units += (int) Math.floor(progress) * type.rate * type.rate * 2;
             progress -= 2d;
         }
     }
@@ -103,7 +105,6 @@ public class Planet {
 
     public void toggleSelected() {
         selected = !selected;
-        System.out.println(selected);
         model.getMaterial("main").set(selected ? ColorAttribute.createDiffuse(team.highlight) : ColorAttribute.createDiffuse(team.colour));
     }
 

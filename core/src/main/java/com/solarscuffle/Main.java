@@ -20,6 +20,9 @@ import com.solarscuffle.planets.Planet;
 import com.solarscuffle.planets.PlanetType;
 import com.solarscuffle.planets.Team;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends ApplicationAdapter implements InputProcessor {
     public Environment environment;
@@ -36,7 +39,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     public float zoom = 0.0f;
 
-    public Planet[] planets = new Planet[5];
+    public List<Planet> planets = new ArrayList<>();
     private final Plane backPlane = new Plane(new Vector3(0, 0, 1), 0);
     private final Vector3 intersection = new Vector3();
     private final Vector3 lastDragPos = new Vector3();
@@ -69,11 +72,11 @@ public class Main extends ApplicationAdapter implements InputProcessor {
             numbers[i] = Decal.newDecal(3f,4f,new TextureRegion(new Texture(i+".png")));
         }
 
-        planets[0] = new Planet(Vector3.Zero, Team.NEUTRAL, PlanetType.LARGE);
-        planets[1] = new Planet(new Vector3(50,50,0),Team.RED);
-        planets[2] = new Planet(new Vector3(50,-50,0),Team.BLUE);
-        planets[3] = new Planet(new Vector3(-50,50,0),Team.GREEN);
-        planets[4] = new Planet(new Vector3(-50,-50,0),Team.YELLOW);
+        planets.add(new Planet(Vector3.Zero, Team.NEUTRAL, PlanetType.LARGE));
+        planets.add(new Planet(new Vector3(50,50,0),Team.RED));
+        planets.add(new Planet(new Vector3(50,-50,0),Team.BLUE));
+        planets.add(new Planet(new Vector3(-50,50,0),Team.GREEN));
+        planets.add(new Planet(new Vector3(-50,-50,0),Team.YELLOW));
         Gdx.input.setInputProcessor(this);
     }
 
@@ -206,7 +209,6 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         float scale = 200;
         zoom = Math.max(10.0f,zoom + amountY*2);
         zoom = Math.min(zoom,fallOff * 4);
-        System.out.println(zoom);
         float a = zoom / (zoom + fallOff);
         camera.position.z = (20) + scale * a * a * a;
         return true;
