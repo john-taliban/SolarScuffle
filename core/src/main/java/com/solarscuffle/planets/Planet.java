@@ -25,6 +25,7 @@ public class Planet {
     public Team team;
     private Vector3 hitbox;
     private ModelInstance model;
+    private ModelInstance ring;
     private double progress;
     private Decal progressBar;
     private Decal unit;
@@ -43,6 +44,9 @@ public class Planet {
         model.transform.set(position, new Quaternion(), new Vector3(type.size,type.size,type.size));
         model.getMaterial("main").set(ColorAttribute.createDiffuse(team.colour));
         model.calculateTransforms();
+        ring = new ModelInstance(type.ring);
+        ring.transform.setTranslation(position);
+        ring.calculateTransforms();
         progressBar = Decal.newDecal(8f,1.5f,new TextureRegion(Main.square));
         progressBar.lookAt(Vector3.Z, Vector3.Y);
         barPos = pos.add(0,type.radius * 1.2f + 2f,0);
@@ -51,7 +55,7 @@ public class Planet {
         unit = Decal.newDecal(2f,2f,new TextureRegion(Main.square));
         unit.setColor(team.unit);
         id = tally++;
-        hitbox = new Vector3(0,-type.radius,0).add(position);
+        hitbox = new Vector3(0,0,0).add(position);
     }
 
     public Planet(Vector3 pos, Team team) {
@@ -79,7 +83,6 @@ public class Planet {
         int j = units;
         float letterWidth = 3f;
         Vector3 p = new Vector3(position).add((length-1) * letterWidth / 2,type.radius * 1.3f + 6,0);
-        System.out.println(length);
         for (int i = 0; i < length; i++) {
             Decal num = Main.numbers[j % 10];
             j/=10;
@@ -88,6 +91,10 @@ public class Planet {
             p.add(-letterWidth,0,0);
             decalBatch.add(num);
             decalBatch.flush();
+        }
+
+        if (selected) {
+            modelBatch.render(ring);
         }
     }
 
@@ -104,8 +111,10 @@ public class Planet {
     }
 
     public void toggleSelected() {
-        selected = !selected;
-        model.getMaterial("main").set(selected ? ColorAttribute.createDiffuse(team.highlight) : ColorAttribute.createDiffuse(team.colour));
+        if (Main.team == team) {
+            selected = !selected;
+            model.getMaterial("main").set(selected ? ColorAttribute.createDiffuse(team.highlight) : ColorAttribute.createDiffuse(team.colour));
+        }
     }
 
 }

@@ -25,25 +25,29 @@ import java.util.List;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends ApplicationAdapter implements InputProcessor {
+    // Rendering Eniroments
     public Environment environment;
     public ModelBatch modelBatch;
     public DecalBatch decalBatch;
 
-    public PerspectiveCamera camera;
-    public ModelInstance instance;
-
-    public static float gameTime;
+    // Rendering Onjects
     public static Model sphere;
     public static Texture square;
     public static Decal[] numbers = new Decal[10];
 
-    public float zoom = 0.0f;
-
-    public List<Planet> planets = new ArrayList<>();
+    // Camera Variables
+    public PerspectiveCamera camera;
+    public float zoom = 10.0f;
     private final Plane backPlane = new Plane(new Vector3(0, 0, 1), 0);
     private final Vector3 intersection = new Vector3();
     private final Vector3 lastDragPos = new Vector3();
 
+    // Static Values
+    public static float gameTime;
+
+    // Gameplay Variables
+    public List<Planet> planets = new ArrayList<>();
+    public static Team team = Team.RED;
 
 
     @Override
@@ -55,7 +59,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         environment.add(new DirectionalLight().set(0.6f,0.6f,0.6f,0f,0f,-1f));
 
         camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.position.set(0f, 0f, 10f);
+        scrolled(0,0); // set camera to the correctly zoomed pos
         camera.lookAt(0,0,0);
         camera.near = 1f;
         camera.far = 300f;
@@ -65,11 +69,14 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
         ModelBuilder builder = new ModelBuilder();
         sphere = builder.createSphere(1f,1f,1f,32,32, new Material("main",ColorAttribute.createDiffuse(Color.CYAN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        instance = new ModelInstance(sphere);
 
         square = new Texture("red.png");
         for (int i = 0; i < 10; i++) {
             numbers[i] = Decal.newDecal(3f,4f,new TextureRegion(new Texture(i+".png")));
+        }
+
+        for (PlanetType type : PlanetType.values()) {
+            type.generateRing();
         }
 
         planets.add(new Planet(Vector3.Zero, Team.NEUTRAL, PlanetType.LARGE));
@@ -205,12 +212,17 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean scrolled(float amountX, float amountY) {
+        // higher values mean less falloff
         float fallOff = 20;
+        // how much is the camera moved per unit of zoom
         float scale = 200;
+        // clamp zoom values
         zoom = Math.max(10.0f,zoom + amountY*2);
         zoom = Math.min(zoom,fallOff * 4);
+        // turn linear zoom value into cubic rational
         float a = zoom / (zoom + fallOff);
         camera.position.z = (20) + scale * a * a * a;
+        // return true to acknowledge the processing of the input
         return true;
     }
 }
