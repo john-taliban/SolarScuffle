@@ -62,8 +62,14 @@ public class Planet {
         this(pos,team,PlanetType.BASIC);
     }
 
-    public void draw(ModelBatch modelBatch, DecalBatch decalBatch, Environment environment) {
+    public void draw(ModelBatch modelBatch, Environment environment) {
         modelBatch.render(model, environment);
+        if (selected) {
+            modelBatch.render(ring,environment);
+        }
+    }
+
+    public void drawDecals(DecalBatch decalBatch) {
         progressBar.setWidth(4 * (float)progress);
         progressBar.setX(barPos.x + (2 * (float)progress) - 4);
         decalBatch.add(progressBar);
@@ -91,10 +97,6 @@ public class Planet {
             p.add(-letterWidth,0,0);
             decalBatch.add(num);
             decalBatch.flush();
-        }
-
-        if (selected) {
-            modelBatch.render(ring);
         }
     }
 

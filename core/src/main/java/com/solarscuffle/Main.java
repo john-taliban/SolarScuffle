@@ -49,6 +49,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     public List<Planet> planets = new ArrayList<>();
     public static Team team = Team.RED;
 
+    private ModelInstance test;
 
     @Override
     public void create() {
@@ -78,8 +79,13 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         for (PlanetType type : PlanetType.values()) {
             type.generateRing();
         }
+        float[]
+        for (VertexAttribute obj : PlanetType.BASIC.ring.meshes.get(0).getVertices()) {
+            System.out.println(obj.);
+        }
+        test = new ModelInstance(PlanetType.LARGE.ring);
 
-        planets.add(new Planet(Vector3.Zero, Team.NEUTRAL, PlanetType.LARGE));
+        //planets.add(new Planet(Vector3.Zero, Team.NEUTRAL, PlanetType.LARGE));
         planets.add(new Planet(new Vector3(50,50,0),Team.RED));
         planets.add(new Planet(new Vector3(50,-50,0),Team.BLUE));
         planets.add(new Planet(new Vector3(-50,50,0),Team.GREEN));
@@ -120,10 +126,14 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
         modelBatch.begin(camera);
         for (Planet planet : planets) {
-            planet.draw(modelBatch,decalBatch,environment);
+            planet.draw(modelBatch,environment);
+        }
+        modelBatch.render(test);
+        modelBatch.end();
+        for (Planet planet : planets) {
+            planet.drawDecals(decalBatch);
         }
         decalBatch.flush();
-        modelBatch.end();
     }
 
     @Override
@@ -132,6 +142,12 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         decalBatch.dispose();
         sphere.dispose();
         square.dispose();
+        for (PlanetType type : PlanetType.values()) {
+            type.ring.dispose();
+        }
+        for (Decal number : numbers) {
+            number.getTextureRegion().getTexture().dispose();
+        }
     }
 
     @Override
