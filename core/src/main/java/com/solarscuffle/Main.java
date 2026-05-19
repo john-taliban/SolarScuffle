@@ -78,11 +78,13 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
         for (PlanetType type : PlanetType.values()) {
             type.generateRing();
+            float[] verts = new float[type.ring.meshes.get(0).getNumVertices() * 3];
+            type.ring.meshes.get(0).getVertices(verts);
+            for (int i = 0; i < type.ring.meshes.get(0).getNumVertices(); i++) {
+                System.out.println(verts[i*3] + "," + verts[i*3+1] + "," + verts[i*3+2]);
+            }
         }
-        float[]
-        for (VertexAttribute obj : PlanetType.BASIC.ring.meshes.get(0).getVertices()) {
-            System.out.println(obj.);
-        }
+
         test = new ModelInstance(PlanetType.LARGE.ring);
 
         //planets.add(new Planet(Vector3.Zero, Team.NEUTRAL, PlanetType.LARGE));

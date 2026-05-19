@@ -28,17 +28,17 @@ public enum PlanetType {
     public void generateRing() {
         ModelBuilder modelBuilder = new ModelBuilder();
         modelBuilder.begin();
-        MeshPartBuilder partBuilder = modelBuilder.part("ring", GL20.GL_TRIANGLE_STRIP, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,new Material("main", ColorAttribute.createDiffuse(Color.WHITE)));
+        MeshPartBuilder partBuilder = modelBuilder.part("ring", GL20.GL_TRIANGLE_STRIP, VertexAttributes.Usage.Position,new Material("main", ColorAttribute.createDiffuse(Color.WHITE)));
         float circumfrence = (2 + radius) * 2 * 3.14159265358979323f;
-        int ticks = (int) circumfrence;
+        int ticks = 4;// (int) circumfrence;
         double radians = 6.28318530718d / ticks;
         for (int i = 0; i <= ticks; i++) {
             float x = (float) Math.sin(i * radians);
             //System.out.println(radius);
             float y = (float) Math.cos(i * radians);
             //System.out.println(y);
-            partBuilder.vertex(new MeshPartBuilder.VertexInfo().setPos(x * (radius + 2),y * (radius + 2),0).setNor(0,0,1));
-            partBuilder.vertex(new MeshPartBuilder.VertexInfo().setPos(x * (radius + 4),y * (radius + 4),0).setNor(0,0,1));
+            partBuilder.vertex(new MeshPartBuilder.VertexInfo().setPos(x * (1 + 2),y * (1 + 2),0));
+            partBuilder.vertex(new MeshPartBuilder.VertexInfo().setPos(x * (1 + 4),y * (1 + 4),0));
         }
         ring = modelBuilder.end();
     }
