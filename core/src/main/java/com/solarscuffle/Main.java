@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.decals.CameraGroupStrategy;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
@@ -58,6 +59,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         environment = new Environment();
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight,0.2f,0.2f,0.2f,1f));
         environment.add(new DirectionalLight().set(0.6f,0.6f,0.6f,0f,0f,-1f));
+        environment.set(new ColorAttribute(ColorAttribute.AmbientLight,1f,1f,1f,1f));
 
         camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         scrolled(0,0); // set camera to the correctly zoomed pos
@@ -69,7 +71,9 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         decalBatch = new DecalBatch(new CameraGroupStrategy(camera));
 
         ModelBuilder builder = new ModelBuilder();
-        sphere = builder.createSphere(1f,1f,1f,32,32, new Material("main",ColorAttribute.createDiffuse(Color.CYAN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        Material material = new Material("main",ColorAttribute.createDiffuse(Color.CYAN));
+        material.set(new IntAttribute(IntAttribute.CullFace,0));
+        sphere = builder.createSphere(1f,1f,1f,32,32, material, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
         square = new Texture("red.png");
         for (int i = 0; i < 10; i++) {

@@ -66,6 +66,7 @@ public class Planet {
         modelBatch.render(model, environment);
         if (selected) {
             modelBatch.render(ring,environment);
+            System.out.println("drawing ring");
         }
     }
 
