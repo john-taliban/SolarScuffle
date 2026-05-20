@@ -17,6 +17,9 @@ import com.solarscuffle.Main;
 
 import java.util.Random;
 
+import static com.solarscuffle.Main.padding;
+import static com.solarscuffle.Main.thickness;
+
 public class Planet {
 
     public Vector3 position;
@@ -26,6 +29,7 @@ public class Planet {
     private Vector3 hitbox;
     private ModelInstance model;
     private ModelInstance ring;
+    private ModelInstance band;
     private double progress;
     private Decal progressBar;
     private Decal unit;
@@ -44,6 +48,8 @@ public class Planet {
         model.transform.set(position, new Quaternion(), new Vector3(type.size,type.size,type.size));
         model.getMaterial("main").set(ColorAttribute.createDiffuse(team.colour));
         model.calculateTransforms();
+        band = new ModelInstance(Main.band);
+
         ring = new ModelInstance(type.ring);
         ring.transform.setTranslation(position);
         ring.calculateTransforms();
@@ -66,7 +72,16 @@ public class Planet {
         modelBatch.render(model, environment);
         if (selected) {
             modelBatch.render(ring,environment);
-            System.out.println("drawing ring");
+            Vector3 mouse = new Vector3(Main.mouseX,Main.mouseY,0);
+            float distance = mouse.dst(position) - thickness - padding/2f - type.radius;
+            Vector3 diff = new Vector3(mouse).sub(position);
+            diff.nor();
+            float angle = (float) (Math.atan2(diff.y,diff.x) * 180 / Math.PI);
+            diff.scl(padding/2f + thickness + type.radius);
+            mouse.add(diff);
+            mouse.scl(0.5f);
+            band.transform.set(mouse.mulAdd(position,0.5f),new Quaternion(Vector3.Z,angle + 90), new Vector3(1,distance/thickness,1));
+            modelBatch.render(band,environment);
         }
     }
 

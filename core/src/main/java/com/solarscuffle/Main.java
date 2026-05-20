@@ -33,6 +33,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     // Rendering Onjects
     public static Model sphere;
+    public static Model band;
     public static Texture square;
     public static Decal[] numbers = new Decal[10];
 
@@ -44,13 +45,16 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     private final Vector3 lastDragPos = new Vector3();
 
     // Static Values
+    public static final int UI_COLOUR = 0xA8C8C8FF;
+    public static final float thickness = 1;
+    public static final float padding = 2;
     public static float gameTime;
+    public static float mouseX = 0f;
+    public static float mouseY = 0f;
 
     // Gameplay Variables
     public List<Planet> planets = new ArrayList<>();
     public static Team team = Team.RED;
-
-    private ModelInstance test;
 
     @Override
     public void create() {
@@ -71,9 +75,12 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         decalBatch = new DecalBatch(new CameraGroupStrategy(camera));
 
         ModelBuilder builder = new ModelBuilder();
-        Material material = new Material("main",ColorAttribute.createDiffuse(Color.CYAN));
-        material.set(new IntAttribute(IntAttribute.CullFace,0));
-        sphere = builder.createSphere(1f,1f,1f,32,32, material, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        sphere = builder.createSphere(1f,1f,1f,32,32, new Material("main",ColorAttribute.createDiffuse(Color.CYAN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        band = builder.createRect(-thickness/2f,-thickness/2f,0f,
+                thickness/2f,-thickness/2f,0f,
+                thickness/2f,thickness/2f,0f,
+                -thickness/2f,thickness/2f,0f,
+                0f,0f,1f,new Material("main",ColorAttribute.createDiffuse(new Color(UI_COLOUR))), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
         square = new Texture("red.png");
         for (int i = 0; i < 10; i++) {
@@ -82,14 +89,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
         for (PlanetType type : PlanetType.values()) {
             type.generateRing();
-            float[] verts = new float[type.ring.meshes.get(0).getNumVertices() * 3];
-            type.ring.meshes.get(0).getVertices(verts);
-            for (int i = 0; i < type.ring.meshes.get(0).getNumVertices(); i++) {
-                System.out.println(verts[i*3] + "," + verts[i*3+1] + "," + verts[i*3+2]);
-            }
         }
-
-        test = new ModelInstance(PlanetType.LARGE.ring);
 
         //planets.add(new Planet(Vector3.Zero, Team.NEUTRAL, PlanetType.LARGE));
         planets.add(new Planet(new Vector3(50,50,0),Team.RED));
@@ -134,7 +134,6 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         for (Planet planet : planets) {
             planet.draw(modelBatch,environment);
         }
-        modelBatch.render(test);
         modelBatch.end();
         for (Planet planet : planets) {
             planet.drawDecals(decalBatch);
@@ -146,6 +145,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     public void dispose() {
         modelBatch.dispose();
         decalBatch.dispose();
+        band.dispose();
         sphere.dispose();
         square.dispose();
         for (PlanetType type : PlanetType.values()) {
@@ -229,6 +229,14 @@ public class Main extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
+        Vector3 i = new Vector3();
+        if (Intersector.intersectRayPlane(camera.getPickRay(screenX, screenY), backPlane, i)) {
+
+            mouseX = i.x;
+            mouseY = i.y;
+
+            return true;
+        }
         return false;
     }
 
