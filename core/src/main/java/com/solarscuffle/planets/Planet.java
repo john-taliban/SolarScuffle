@@ -14,11 +14,11 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.math.collision.Sphere;
 import com.solarscuffle.Main;
+import com.solarscuffle.UnitCloud;
 
 import java.util.Random;
 
-import static com.solarscuffle.Main.padding;
-import static com.solarscuffle.Main.thickness;
+import static com.solarscuffle.Main.*;
 
 public class Planet {
 
@@ -72,17 +72,37 @@ public class Planet {
         modelBatch.render(model, environment);
         if (selected) {
             modelBatch.render(ring,environment);
-            Vector3 mouse = new Vector3(Main.mouseX,Main.mouseY,0);
-            float distance = mouse.dst(position) - thickness - padding/2f - type.radius;
-            Vector3 diff = new Vector3(mouse).sub(position);
+
+            Vector3 to;
+            Vector3 from = new Vector3(position);
+            float distance;
+            float c = padding/2f + thickness + type.radius;
+            float d = 0;
+
+            if (Main.target != null) {
+                to = new Vector3(target.position.x,target.position.y, 0);
+                d = padding/2f + thickness + target.type.radius;
+                distance = to.dst(from) - c - d;
+            }
+            else {
+                to = new Vector3(Main.mouseX, Main.mouseY, 0);
+                distance = to.dst(from) - c;
+            }
+            Vector3 diff = new Vector3(to).sub(from);
             diff.nor();
             float angle = (float) (Math.atan2(diff.y,diff.x) * 180 / Math.PI);
-            diff.scl(padding/2f + thickness + type.radius);
-            mouse.add(diff);
-            mouse.scl(0.5f);
-            band.transform.set(mouse.mulAdd(position,0.5f),new Quaternion(Vector3.Z,angle + 90), new Vector3(1,distance/thickness,1));
+            to.mulAdd(diff,c);
+            if (target != null) {
+                from.mulAdd(diff,-d);
+            }
+            to.scl(0.5f);
+            band.transform.set(to.mulAdd(from,0.5f),new Quaternion(Vector3.Z,angle + 90), new Vector3(1,distance/thickness,1));
             modelBatch.render(band,environment);
         }
+    }
+
+    public void renderTargeted(ModelBatch modelBatch, Environment environment) {
+        modelBatch.render(ring,environment);
     }
 
     public void drawDecals(DecalBatch decalBatch) {
@@ -131,8 +151,13 @@ public class Planet {
     public void toggleSelected() {
         if (Main.team == team) {
             selected = !selected;
+            if (selected) {selectedList.add(this);} else {selectedList.remove(this);}
             model.getMaterial("main").set(selected ? ColorAttribute.createDiffuse(team.highlight) : ColorAttribute.createDiffuse(team.colour));
         }
+    }
+
+    public UnitCloud send(Planet target, int percent) {
+        return new UnitCloud(this,target,(int)(units * percent / 100f));
     }
 
 }
