@@ -16,6 +16,7 @@ import com.badlogic.gdx.math.collision.Sphere;
 import com.solarscuffle.Main;
 import com.solarscuffle.UnitCloud;
 
+import java.util.EnumMap;
 import java.util.Random;
 
 import static com.solarscuffle.Main.*;
@@ -24,16 +25,20 @@ public class Planet {
 
     public Vector3 position;
     public PlanetType type = PlanetType.BASIC;
-    public int units;
-    public Team team;
     private Vector3 hitbox;
+
+    public Team team;
+    private int[] units = new int[Team.values().length];
+    private int[] attackValues = new int[Team.values().length];
+    private boolean occupied;
+
     private ModelInstance model;
     private ModelInstance ring;
     private ModelInstance band;
     private double progress;
     private Decal progressBar;
-    private Decal unit;
     private Vector3 barPos;
+
     private int id;
     private boolean selected = false;
 
@@ -44,6 +49,8 @@ public class Planet {
         this.team = team;
         this.type = type;
 
+        units[team.ordinal()] = type.startingUnits;
+
         model = new ModelInstance(Main.sphere);
         model.transform.set(position, new Quaternion(), new Vector3(type.size,type.size,type.size));
         model.getMaterial("main").set(ColorAttribute.createDiffuse(team.colour));
@@ -53,13 +60,13 @@ public class Planet {
         ring = new ModelInstance(type.ring);
         ring.transform.setTranslation(position);
         ring.calculateTransforms();
+
         progressBar = Decal.newDecal(8f,1.5f,new TextureRegion(Main.square));
         progressBar.lookAt(Vector3.Z, Vector3.Y);
         barPos = pos.add(0,type.radius * 1.2f + 2f,0);
         progressBar.setPosition(barPos);
         progressBar.setColor(team.colour);
-        unit = Decal.newDecal(2f,2f,new TextureRegion(Main.square));
-        unit.setColor(team.unit);
+
         id = tally++;
         hitbox = new Vector3(0,0,0).add(position);
     }
@@ -109,38 +116,89 @@ public class Planet {
         progressBar.setWidth(4 * (float)progress);
         progressBar.setX(barPos.x + (2 * (float)progress) - 4);
         decalBatch.add(progressBar);
-        Vector3 unitPos = new Vector3(position);
-        Vector3 unitOffset = new Vector3(Vector3.X);
-        Vector3 unitId = new Vector3();
-        unitOffset.scl(type.radius + 4f);
+        int textLayers = 2;
         Random random = new Random(id);
-        for (int i = 0; i < Math.pow(units,0.3 + 0.014 * type.size) ; i++) {
-            unitId.y = random.nextFloat(-0.5f,0.5f) * type.radius;
-            unitOffset.rotate(Vector3.Y,37 + random.nextFloat(-4,4));
-            unit.setPosition(new Vector3(unitOffset).rotate(Vector3.Y,Main.gameTime * 40).add(unitPos).add(unitId));
-            decalBatch.add(unit);
-            decalBatch.flush();
-        }
-        int length = 1 + (units < 10 ? 0 : (int) Math.log10(units));
-        int j = units;
-        float letterWidth = 3f;
-        Vector3 p = new Vector3(position).add((length-1) * letterWidth / 2,type.radius * 1.3f + 6,0);
-        for (int i = 0; i < length; i++) {
-            Decal num = Main.numbers[j % 10];
-            j/=10;
-            num.setColor(team.colour);
-            num.setPosition(p);
-            p.add(-letterWidth,0,0);
-            decalBatch.add(num);
-            decalBatch.flush();
+        for (Team t : Team.values()) {
+            int ordinal = t.ordinal();
+            int count = units[ordinal];
+            if (count == 0) {
+                continue;
+            }
+            Decal unit = Main.unitDecals[ordinal];
+            Vector3 unitPos = new Vector3(position);
+            Vector3 unitOffset = new Vector3(Vector3.X);
+            Vector3 unitId = new Vector3();
+            unitOffset.scl(type.radius + 4f);
+            for (int i = 0; i < Math.pow(count,0.3 + 0.014 * type.size) ; i++) {
+                unitId.y = random.nextFloat(-0.5f,0.5f) * type.radius;
+                unitOffset.rotate(Vector3.Y,37 + random.nextFloat(-4,4));
+                unit.setPosition(new Vector3(unitOffset).rotate(Vector3.Y,Main.gameTime * 40).add(unitPos).add(unitId));
+                decalBatch.add(unit);
+                decalBatch.flush();
+            }
+
+            int length = 1 + (count < 10 ? 0 : (int) Math.log10(count));
+            int j = count;
+            float letterWidth = 3f;
+            Vector3 p = new Vector3(position).add((length-1) * letterWidth / 2,type.radius * 1.3f + (t == team ? 6 : textLayers++ * 6),0);
+            for (int i = 0; i < length; i++) {
+                Decal num = Main.numbers[j % 10];
+                j/=10;
+                // for now im fine doing this bc there are so few letter draw calls
+                num.setColor(t.colour);
+                num.setPosition(p);
+                p.add(-letterWidth,0,0);
+                decalBatch.add(num);
+                decalBatch.flush();
+            }
         }
     }
 
     public void tick(double deltaTime) {
-        progress += deltaTime * 2 / type.rate;
-        if (progress > 2d) {
-            units += (int) Math.floor(progress) * type.rate * type.rate * 2;
-            progress -= 2d;
+        if (occupied) {
+            progress += deltaTime;
+            if (progress > 2d) {
+                progress -= 2d;
+                boolean occupiers = false;
+                int enemies = 0;
+                int singleOrdinal = 0;
+                for (Team t : Team.values()) {
+                    if (t == team) { continue; }
+                    int ordinal = t.ordinal();
+                    units[ordinal] = Math.max(0, units[ordinal] - attackValues[team.ordinal()]);
+                    if (units[ordinal] == 0) {
+                        if (attackValues[ordinal] > 0) {
+                            units[team.ordinal()] = Math.max(0, units[team.ordinal()] - attackValues[ordinal]);
+                        }
+                        attackValues[ordinal] = 0;
+                    }
+                    if (attackValues[ordinal] == 0) {
+                        continue;
+                    }
+                    units[team.ordinal()] = Math.max(0, units[team.ordinal()] - attackValues[ordinal]);
+                    occupiers = true;
+                    enemies++;
+                    singleOrdinal = ordinal;
+                }
+                occupied = occupiers;
+                if (units[team.ordinal()] <= 0 && occupied) {
+                    if (enemies == 1) {
+
+                        setTeam(Team.values()[singleOrdinal]);
+                    }
+                    else {
+                        setTeam(Team.NEUTRAL);
+                    }
+                }
+
+            }
+        }
+        else {
+            progress += deltaTime * 0 / type.rate;
+            if (progress > 2d) {
+                units[team.ordinal()] += (int) Math.floor(progress) * type.rate * type.rate * 2;
+                progress -= 2d;
+            }
         }
     }
 
@@ -157,7 +215,51 @@ public class Planet {
     }
 
     public UnitCloud send(Planet target, int percent) {
-        return new UnitCloud(this,target,(int)(units * percent / 100f));
+        int sending = (int)(units[team.ordinal()] * percent / 100f);
+        units[team.ordinal()] -= sending;
+        return new UnitCloud(this,target,sending);
     }
 
+    public void attack(int units, Team team) {
+        this.units[team.ordinal()] += units;
+        occupy();
+    }
+
+    public int getCount() {
+        return units[team.ordinal()];
+    }
+
+    public void setTeam(Team newTeam) {
+        team = newTeam;
+        model.getMaterial("main").set(ColorAttribute.createDiffuse(team.colour));
+        selected = false;
+        progressBar.setColor(team.colour);
+        if (newTeam != Team.NEUTRAL) {
+            occupied = false;
+        }
+    }
+
+    private static final float damageMultiplier = .2f;
+
+    public void occupy() {
+        occupied = true;
+        int defence = units[team.ordinal()];
+        int dOrdinal = team.ordinal();
+        for (Team t : Team.values()) {
+            if (t == team) continue;
+            int ordinal = t.ordinal();
+            float attackValue = units[ordinal];
+            if (attackValue == 0) continue;
+            double ratio = defence / attackValue;
+            ratio = Math.pow(ratio, 1.6);
+            if (ratio > 1) {
+                attackValues[ordinal] = (int) ((1 - (1/ratio)) * defence * damageMultiplier);
+                attackValues[dOrdinal] += (int) (((1/ratio)) * attackValue * damageMultiplier);
+            }
+            else {
+                attackValues[ordinal] = (int) ((1 - ratio) * defence * damageMultiplier);
+                attackValues[dOrdinal] += (int) ((ratio) * attackValue * damageMultiplier);
+            }
+        }
+    }
 }

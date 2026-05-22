@@ -19,26 +19,31 @@ public class UnitCloud {
     private float progess = 0;
     private float distance;
     private Team team;
-    private Vector3 destination;
+    private Planet destination;
     private int id;
     private Decal unit;
 
     public UnitCloud(Planet from, Planet to, int units) {
         this.home = new Vector3(from.position);
         this.position = new Vector3(from.position);
-        this.destination = new Vector3(to.position);
+        this.destination = to;
         this.units = units;
         this.team = from.team;
-        this.distance = home.dst(destination);
+        this.distance = home.dst(destination.position);
         unit = Decal.newDecal(2f,2f,new TextureRegion(Main.square));
         unit.setColor(team.unit);
         id = count++;
     }
 
     public boolean tick(float deltaTime) {
-        progess += deltaTime * 7;
-        position = new Vector3(home).lerp(destination,progess/distance);
-        return progess >= distance;
+        progess += deltaTime * 100;
+        position = new Vector3(home).lerp(destination.position,progess/distance);
+        if (progess >= distance) {
+            destination.attack(units,team);
+            System.out.println("attack");
+            return true;
+        }
+        return false;
     }
 
     public void draw(DecalBatch decalBatch, float deltaTime) {

@@ -4,12 +4,11 @@ import com.badlogic.gdx.graphics.Color;
 
 public enum Team {
 
-    NEUTRAL(new Color(0x6f6f6fff),Color.LIGHT_GRAY),
     RED(new Color(0.65f,0f,0f,1f),Color.RED),
     YELLOW(new Color(0.65f,0.65f,0f,1f),Color.YELLOW),
     GREEN(Color.FOREST,Color.GREEN),
-    BLUE(new Color(0f,0.45f,0.65f,1f),new Color(0f,0.65f,1f,1f));
-
+    BLUE(new Color(0f,0.45f,0.65f,1f),new Color(0f,0.65f,1f,1f)),
+    NEUTRAL(new Color(0x6f6f6fff),Color.LIGHT_GRAY);
     public Color colour;
     public Color highlight;
     public Color unit;

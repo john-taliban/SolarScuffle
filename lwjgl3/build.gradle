@@ -50,6 +50,9 @@ run {
   //setIgnoreExitValue(true)
 
   if (os.contains('mac')) jvmArgs += "-XstartOnFirstThread"
+
+  standardOutput = System.out
+  errorOutput = System.err
 }
 
 jar {

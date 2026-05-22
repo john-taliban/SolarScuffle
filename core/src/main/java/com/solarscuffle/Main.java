@@ -42,6 +42,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     public static Model band;
     public static Texture square;
     public static Decal[] numbers = new Decal[10];
+    public static Decal[] unitDecals = new Decal[Team.values().length];
 
     // UI Objects
     private Sprite sliderBar;
@@ -54,7 +55,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     private final Vector3 lastDragPos = new Vector3();
 
     // Static Values
-    public static final int UI_COLOUR = 0xA8C8C8FF;
+    public static final int UI_COLOUR = 0xC8C8C8FF;
     public static final float thickness = 1;
     public static final float padding = 2;
     public static float gameTime;
@@ -75,9 +76,8 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         modelBatch = new ModelBatch();
         spriteBatch = new SpriteBatch();
         environment = new Environment();
-        environment.set(new ColorAttribute(ColorAttribute.AmbientLight,0.2f,0.2f,0.2f,1f));
+        environment.set(new ColorAttribute(ColorAttribute.AmbientLight,0.1f,0.1f,0.1f,1f));
         environment.add(new DirectionalLight().set(0.6f,0.6f,0.6f,0f,0f,-1f));
-        environment.set(new ColorAttribute(ColorAttribute.AmbientLight,1f,1f,1f,1f));
 
         camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         scrolled(0,0); // set camera to the correctly zoomed pos
@@ -100,8 +100,14 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         sliderBar = new Sprite(square);
         sliderBar.setScale(Gdx.graphics.getWidth() * 0.6f,3);
         sliderBar.setPosition(Gdx.graphics.getWidth() / 2, 20);
+
         for (int i = 0; i < 10; i++) {
             numbers[i] = Decal.newDecal(3f,4f,new TextureRegion(new Texture(i+".png")));
+        }
+        Team[] g = Team.values();
+        for (int i = 0; i < g.length; i++) {
+            unitDecals[i] = Decal.newDecal(2f,2f,new TextureRegion(square));
+            unitDecals[i].setColor(g[i].colour);
         }
 
         for (PlanetType type : PlanetType.values()) {
@@ -115,6 +121,8 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         planets.add(new Planet(new Vector3(-50,50,0),Team.GREEN));
         planets.add(new Planet(new Vector3(-50,-50,0),Team.YELLOW));
         Gdx.input.setInputProcessor(this);
+
+        unitClouds.add(new UnitCloud(planets.get(2), planets.get(3),80));
     }
 
     @Override
@@ -126,6 +134,9 @@ public class Main extends ApplicationAdapter implements InputProcessor {
     @Override
     public void render() {
         double deltaTime = Gdx.graphics.getDeltaTime();
+        if (Gdx.input.isKeyPressed(Input.Keys.F)) {
+            deltaTime *= 10;
+        }
         gameTime += (float) deltaTime;
         input(deltaTime);
         logic(deltaTime);
@@ -147,6 +158,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
                 toRemove.add(i);
             }
         }
+        // TODO: implement destruction on the same tick
         for (int remove : toRemove) {
             unitClouds.remove(remove);
         }
@@ -240,6 +252,9 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         Ray cameraRay = camera.getPickRay(screenX, screenY);
         if (target != null) {
             for (Planet planet : selectedList) {
+                if (planet.getCount() == 0) {
+                    continue;
+                }
                 unitClouds.add(planet.send(target,percent));
             }
         }

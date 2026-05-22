@@ -17,17 +17,23 @@ import static com.solarscuffle.Main.thickness;
 
 public enum PlanetType {
 
-    BASIC(10,1),
-    LARGE(20,2);
+    BASIC(10,1,100),
+    LARGE(20,2,50);
 
     public final float size;
     public final float radius;
     public final int rate;
     public Model ring;
-    private PlanetType(float size, int rate) {
+    public final int startingUnits;
+    private PlanetType(float size, int rate, int startingUnits) {
         this.size = size;
         this.radius = size/2;
         this.rate = rate;
+        this.startingUnits = startingUnits;
+    }
+
+    private PlanetType(float size, int rate) {
+        this(size,rate,0);
     }
 
 
