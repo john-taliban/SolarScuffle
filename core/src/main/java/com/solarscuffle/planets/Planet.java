@@ -165,21 +165,13 @@ public class Planet {
                 for (Team t : Team.values()) {
                     if (t == team) { continue; }
                     int ordinal = t.ordinal();
-                    units[ordinal] = Math.max(0, units[ordinal] - attackValues[team.ordinal()]);
-                    if (units[ordinal] == 0) {
-                        if (attackValues[ordinal] > 0) {
-                            units[team.ordinal()] = Math.max(0, units[team.ordinal()] - attackValues[ordinal]);
-                        }
-                        attackValues[ordinal] = 0;
-                    }
-                    if (attackValues[ordinal] == 0) {
-                        continue;
-                    }
-                    units[team.ordinal()] = Math.max(0, units[team.ordinal()] - attackValues[ordinal]);
+                    units[ordinal] = Math.max(0, units[ordinal] - attackValues[ordinal]);
+                    if (units[ordinal] == 0) continue;
                     occupiers = true;
                     enemies++;
                     singleOrdinal = ordinal;
                 }
+                units[team.ordinal()] = Math.max(0, units[team.ordinal()] - attackValues[team.ordinal()]);
                 occupied = occupiers;
                 if (units[team.ordinal()] <= 0 && occupied) {
                     if (enemies == 1) {
@@ -190,11 +182,12 @@ public class Planet {
                         setTeam(Team.NEUTRAL);
                     }
                 }
+                recalculateDamageValues();
 
             }
         }
         else {
-            progress += deltaTime * 0 / type.rate;
+            progress += deltaTime * 2 / type.rate;
             if (progress > 2d) {
                 units[team.ordinal()] += (int) Math.floor(progress) * type.rate * type.rate * 2;
                 progress -= 2d;
@@ -222,7 +215,8 @@ public class Planet {
 
     public void attack(int units, Team team) {
         this.units[team.ordinal()] += units;
-        occupy();
+        occupied = true;
+        recalculateDamageValues();
     }
 
     public int getCount() {
@@ -241,10 +235,10 @@ public class Planet {
 
     private static final float damageMultiplier = .2f;
 
-    public void occupy() {
-        occupied = true;
+    public void recalculateDamageValues() {
         int defence = units[team.ordinal()];
         int dOrdinal = team.ordinal();
+        attackValues[dOrdinal] = 0;
         for (Team t : Team.values()) {
             if (t == team) continue;
             int ordinal = t.ordinal();
@@ -253,12 +247,12 @@ public class Planet {
             double ratio = defence / attackValue;
             ratio = Math.pow(ratio, 1.6);
             if (ratio > 1) {
-                attackValues[ordinal] = (int) ((1 - (1/ratio)) * defence * damageMultiplier);
-                attackValues[dOrdinal] += (int) (((1/ratio)) * attackValue * damageMultiplier);
+                attackValues[ordinal] = (int) Math.ceil(((1/ratio)) * defence * damageMultiplier);
+                attackValues[dOrdinal] += (int) Math.ceil((1-(1/ratio)) * attackValue * damageMultiplier);
             }
             else {
-                attackValues[ordinal] = (int) ((1 - ratio) * defence * damageMultiplier);
-                attackValues[dOrdinal] += (int) ((ratio) * attackValue * damageMultiplier);
+                attackValues[ordinal] = (int) Math.ceil((1-ratio) * defence * damageMultiplier);
+                attackValues[dOrdinal] += (int) Math.ceil((ratio) * attackValue * damageMultiplier);
             }
         }
     }

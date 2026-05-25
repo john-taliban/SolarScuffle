@@ -36,11 +36,10 @@ public class UnitCloud {
     }
 
     public boolean tick(float deltaTime) {
-        progess += deltaTime * 100;
+        progess += deltaTime * 17;
         position = new Vector3(home).lerp(destination.position,progess/distance);
         if (progess >= distance) {
             destination.attack(units,team);
-            System.out.println("attack");
             return true;
         }
         return false;

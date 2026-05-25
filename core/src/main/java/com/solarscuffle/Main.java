@@ -122,7 +122,7 @@ public class Main extends ApplicationAdapter implements InputProcessor {
         planets.add(new Planet(new Vector3(-50,-50,0),Team.YELLOW));
         Gdx.input.setInputProcessor(this);
 
-        unitClouds.add(new UnitCloud(planets.get(2), planets.get(3),80));
+        unitClouds.add(new UnitCloud(planets.get(2), planets.get(3),120));
     }
 
     @Override
