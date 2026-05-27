@@ -171,7 +171,12 @@ public class Planet {
                     enemies++;
                     singleOrdinal = ordinal;
                 }
-                units[team.ordinal()] = Math.max(0, units[team.ordinal()] - attackValues[team.ordinal()]);
+                if (!occupied) {
+                    units[team.ordinal()] = Math.max(0, units[team.ordinal()] - attackValues[team.ordinal()] / 4);
+                }
+                else {
+                    units[team.ordinal()] = Math.max(0, units[team.ordinal()] - attackValues[team.ordinal()]);
+                }
                 occupied = occupiers;
                 if (units[team.ordinal()] <= 0 && occupied) {
                     if (enemies == 1) {
@@ -189,7 +194,7 @@ public class Planet {
         else {
             progress += deltaTime * 2 / type.rate;
             if (progress > 2d) {
-                units[team.ordinal()] += (int) Math.floor(progress) * type.rate * type.rate * 2;
+                units[team.ordinal()] += type.rate * type.rate * 2;
                 progress -= 2d;
             }
         }
@@ -233,7 +238,8 @@ public class Planet {
         }
     }
 
-    private static final float damageMultiplier = .2f;
+    private static final float damageMultiplier = .7f;
+    private static final float bonusMultiplier = .65f;
 
     public void recalculateDamageValues() {
         int defence = units[team.ordinal()];
@@ -242,18 +248,26 @@ public class Planet {
         for (Team t : Team.values()) {
             if (t == team) continue;
             int ordinal = t.ordinal();
-            float attackValue = units[ordinal];
+            int attackValue = units[ordinal];
             if (attackValue == 0) continue;
-            double ratio = defence / attackValue;
-            ratio = Math.pow(ratio, 1.6);
+            double ratio = defence / (double)attackValue;
+            int difference = (int) (Math.abs(attackValue-defence) * 0.5) + 10;
+            ratio = Math.pow(ratio,0.67);
             if (ratio > 1) {
-                attackValues[ordinal] = (int) Math.ceil(((1/ratio)) * defence * damageMultiplier);
-                attackValues[dOrdinal] += (int) Math.ceil((1-(1/ratio)) * attackValue * damageMultiplier);
+                attackValues[ordinal] = (int) Math.ceil(((1/ratio)) * difference * bonusMultiplier + 0.15);
+                attackValues[dOrdinal] += (int) Math.ceil((1-(1/ratio)) * difference * damageMultiplier);
+            }
+            else if (ratio < 1) {
+                attackValues[ordinal] = (int) Math.ceil((1-ratio) * difference * damageMultiplier);
+                attackValues[dOrdinal] += (int) Math.ceil((ratio) * difference * bonusMultiplier + 0.15);
             }
             else {
-                attackValues[ordinal] = (int) Math.ceil((1-ratio) * defence * damageMultiplier);
-                attackValues[dOrdinal] += (int) Math.ceil((ratio) * attackValue * damageMultiplier);
+                attackValues[ordinal] = (int) Math.ceil(defence * damageMultiplier) + 1;
+                attackValues[dOrdinal] += (int) Math.ceil(defence * damageMultiplier);
             }
+//            int total = defence + attackValue;
+//            double percent = attackValue / total;
+//            total += Math.abs(attackValue-defence);
         }
     }
 }
